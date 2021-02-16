@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    {{ title(constant('site_title')) }}
+
+    {{ css('bootstrap.min.css') }}
+    {{ css('all.min.css') }}
+    {{ css('custom.css') }}
+
+    {{ js('jquery-3.3.1.min.js') }}
+    {{ js('queue.js') }}
+    {{ js('jquery-canvas-sparkles.js') }}
+    {{ js('custom.js') }}
+</head>
+<body>
+
+    {% include 'navbar.twig' %}
+
+    {% block content %}
+    {% endblock %}
+
+    {% include 'footer.twig' %}
+
+
+    {{ js('bootstrap.bundle.min.js') }}
+</body>
+</html>

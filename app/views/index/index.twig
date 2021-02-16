@@ -1,0 +1,283 @@
+{%  extends 'layout.twig' %}
+
+{% block content %}
+<div class="container">
+    
+    <div class="row">
+        <div class="col-sm-12 col-lg-3">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body text-center">
+                    <small>Signed in as</small>
+                    <h5>{{ member.name }}</h5>
+
+                    <div class="small">
+                        <a href="{{ url('?logout') }}" class="btn btn-primary btn-sm">Logout</a>
+
+                        {% if member.isAdmin() or member.isDeveloper() or member.isOwner() %}
+                        <a href="{{ url('admin') }}" class="btn btn-primary btn-sm">
+                            Admin
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+
+                    <p class="mb-0">
+                        Flips: 
+                        <span class="text-primary" id="flips">
+                            {{ flips|number_format }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            
+        </div>
+
+        <div class="col-sm-12 col-lg-9">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <h5>Card Game</h5>
+                    <p>
+                        Welcome! Using flips bought from our store, you can flip for random items. Enhanced flips will
+                        grant a better drop rate, but also cost 3 flips instead of 1.
+						You can claim your rewards in-game by using the ::claimflip command!
+                    </p>
+
+                    <hr>
+
+                    <p class="text-center text-danger" id="notice">
+                        &nbsp;
+                    </p>
+
+                    <div class="d-flex text-center mb-3">
+                        {% for game_card in 1..constant("CARD_LIMIT") %}
+                        <div class="flex-fill w-100">
+                            <div class="card loot m-1 bg-transparent">
+                                <div class="face front p-3"></div>
+                                <div class="face back p-3">
+                                    <div class="tier"></div>
+                                    <div class="back-inner"></div>
+                                    <div class="img"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+    
+                    <hr>
+
+                    <div class="mt-3 text-center">
+                        <a href="#" class="btn btn-primary text-white" id="flip" data-type="regular">
+                            Regular (Cost: {{ constant("REG_COST") }})
+                        </a>
+                        <a href="#" class="btn btn-primary text-white" id="flip" data-type="enhanced">
+                            Enhanced (Cost: {{ constant("ENH_COST") }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3 text-white-50">
+                <div class="card-body">
+                    <h5>Info about Rarities</h4>
+                    <p>Flips are divided into 9 rarities, but because of there only being 5 colors, they're
+                        divided into those 5 colors.
+                    </p>
+    
+                    <p>{% for key, value in rarities %}
+                        {% for rarity in value %}
+                        <span class="text-{{ key }}">{{ rarity }}</span>,
+                        {% endfor %}
+                        {% endfor %}</p>
+    
+                    <p class="mb-0">Simplified:</p>
+                    
+                    <p>
+                        common,
+                        <span class="text-uncommon">uncommon</span>,
+                        <span class="text-rare">rare</span>,
+                        <span class="text-epic">epic</span>, and
+                        <span class="text-legendary">legendary</span>.
+                    </p>
+    
+                </div>
+            </div>
+
+            {{ content|raw }}
+        </div>
+    </div>
+
+</div>
+
+<audio id="sound">
+    <source src="{{ url('public/sounds/card-flip.mp3') }}" type="audio/ogg" />
+</audio>
+
+<script>
+    let cards      = $('.loot');
+    let count      = 0;
+    let locked     = false;
+    let time       = 0;
+    let delay      = false;
+    let card_limit = parseInt("{{ constant('CARD_LIMIT') }}");
+    let token      = "{{ csrf_token }}";
+
+    $('a[id="flip"]').click(function(e) {
+        e.preventDefault();
+
+        if (locked) {
+            return;
+        }
+
+        locked = true;
+        resetCards();
+        let type = $(this).data("type");
+
+        console.log(type);
+
+        if (delay) {
+            setTimeout(function () {
+                flipCards(type);
+            }, 1000);
+            delay = false;
+        } else {
+            flipCards(type);
+        }
+    
+    });
+
+    function flipCards(type) {
+        $('#notice').html("&nbsp;");
+
+        $.post("{{ url('flip') }}", {
+            _token: token,
+            type: type
+        }, function(json) {
+            console.log(json);
+            try {
+                token = json.token;
+                let message = json.message;
+
+                if (!json.success) {
+                    $('#notice').html(message);
+                    locked = false;
+                    return;
+                }
+                
+                let type   = $(this).data("type");
+                let cards  = message.cards;
+                let flips  = addCommas(message.flips);
+                let blocks = $(document).find(".loot");
+                let audio  = $('audio[id="sound"]')[0];
+
+                $('#flips').html(flips);
+        
+                for (let i = 0; i < cards.length; i++) {
+                    let card  = cards[i];
+                    let block = $(blocks[i]);
+                    let back  = block.find(".back");
+        
+                    let item_id   = card.id;
+                    let item_name = card.item_name;
+                    let quantity  = card.quantity;
+                    let rarity    = card.rarity;
+
+                    if (rarity == 0) {
+                        back.addClass("common");
+                    } else if (rarity >= 1 && rarity < 4) {
+                        back.addClass("uncommon");
+                    } else if (rarity == 4 || rarity == 5) {
+                        back.addClass("rare");
+                    } else if (rarity == 6 || rarity == 7) {
+                        back.addClass("epic");
+                    } else if (rarity >= 8) {
+                        back.addClass("legendary");
+                    }
+
+                    back.find(".back-inner").html(item_name+'<br>x'+addCommas(quantity));
+        
+                    setTimeout(function() {
+                        if (count === (card_limit - 1)) {
+                            reset();
+                        }
+
+                        if (rarity >= 8) {
+                            back.trigger("stop.sparkle");
+                            back.sparkle({
+                                color: "#FF8000",
+                                count: 20,
+                                overlap: 0,
+                                speed: 1,
+                                minSize: 4,
+                                maxSize: 7,
+                                direction: "both"
+                            });
+                        }
+        
+                        audio.pause();
+                        audio.play();
+                        
+                        block.addClass("flipped");
+                        count++;
+                    }, 1000 * i);
+                }
+            } catch (err) {
+                $('#notice').html("Error: "+err);
+                locked = false;
+                token = json.token;
+                console.log(err);
+            }
+
+            
+        });
+
+        
+    }
+
+    function reset() {
+        setTimeout(function() {
+            locked = false;
+            time = 1000;
+            count = 0;
+            delay = true;
+        }, 1000);
+    }
+
+    function resetCards() {
+        cards.each(function() {
+            var currentCard = $(this);
+
+            if (currentCard.hasClass("flipped")) {
+                currentCard.removeClass("flipped");
+                var back = currentCard.find(".back");
+
+                back.removeClass('common');
+                back.removeClass('uncommon');
+                back.removeClass('rare');
+                back.removeClass('epic');
+                back.removeClass('legendary');
+
+                back.find(".tier").html("");
+                back.find(".img").html("");
+                back.find(".back-inner").html('');
+                back.find("canvas").remove();
+            }
+        });
+    }
+
+    function addCommas(nStr)
+    {
+        nStr += '';
+        x = nStr.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + ',' + '$2');
+        }
+        return x1 + x2;
+    }
+
+</script>
+{%  endblock %}

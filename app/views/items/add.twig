@@ -1,0 +1,103 @@
+{% extends 'admin_layout.twig' %}
+
+{% block content %}
+{% include 'admin/sidebar.twig' %}
+
+<div class="main-content" id="panel">
+    <nav class="navbar navbar-top navbar-expand-md navbar-dark bg-gradient-primary mt-0" id="navbar-main">
+        <div class="container-fluid">
+            <!-- Brand -->
+            <a class="h4 mb-0 text-white text-uppercase text--sm-center text-md-left pl-sm-4 pl-md-0" 
+                href="{{ url('admin') }}">
+                Admin Panel
+            </a>
+
+            <ul class="navbar-nav align-items-center d-none d-md-flex">
+                <li class="nav-item dropdown">
+                    <span class="mb-0 text-sm font-weight-bold text-white">
+                        <i class="fas fa-user-circle"></i> {{ username|capitalize }}
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid pt-6">
+        <div class="row">
+            <div class="col-xl-12">
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-transparent">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h6 class="text-uppercase text-muted ls-1 mb-1">Flip Item</h6>
+                                <h2 class="mb-0">Add New Item</h2>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if success is defined %}
+                        <div class="alert alert-success alert-dismissible fade show rounded-0">
+                            {{ success }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    {% if error is defined %}
+                        <div class="alert alert-danger alert-dismissible fade show rounded-0">
+                            {{ error }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <form method="post" action="{{ url('admin/items/add') }}">
+                            <div class="form-group">
+                                <label class="small text-muted">Item ID</label>
+                                <input class="form-control" type="number"
+                                    name="item_id" min="0" max="65535" required>
+                            </div>W
+
+                            <div class="form-group">
+                                <label class="small text-muted">Item Name</label>
+                                <input class="form-control" type="text"
+                                    name="item_name"  required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="small text-muted">Quantity</label>
+                                <input class="form-control" type="number" value="1"
+                                    name="quantity" min="0" max="2147483647"  required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="small text-muted">Rarity</label>
+                                <input class="form-control" type="number" value="0"
+                                    name="rarity" min="0" max="9" required>
+
+                                <small class="text-muted">
+                                    Ranges from 0 to 9. The higher the number, the more rare
+                                    the item (0 = common, 9 = extremely rare.)
+                                </small>
+                            </div>
+
+                            <input type="hidden" name="_token" value="{{ csrf_token }}">
+
+                            <div class="form-group mb-0">
+                                <button class="btn btn-primary" type="submit">Add Item</button>
+                                <a href="{{ url('admin/items') }}" class="btn btn-link text-danger">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{ content|raw }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

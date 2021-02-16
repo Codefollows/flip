@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    {% block head %}
+        <title>Dashboard</title>
+    {% endblock %}
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    {{ css('bootstrap.min.css') }}
+    {{ css('argon-dashboard.min.css') }}
+    {{ css('all.min.css') }}
+
+    {{ css('bootstrap.dark.css') }}
+
+    {{ js('jquery-3.3.1.min.js') }}
+    {{ js('custom.js') }}
+    {{ js('bootstrap.bundle.min.js') }}
+
+</head>
+<body class="">
+
+{% block content %}
+{% endblock %}
+
+{{ js('js.cookie-2.2.1.min.js') }}
+{{ js('argon-dashboard.min.js') }}
+</body>
+</html>

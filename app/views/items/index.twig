@@ -1,0 +1,121 @@
+{% extends 'admin_layout.twig' %}
+
+{% block content %}
+{% include 'admin/sidebar.twig' %}
+
+<div class="main-content" id="panel">
+    <nav class="navbar navbar-top navbar-expand-md navbar-dark bg-gradient-primary mt-0" id="navbar-main">
+        <div class="container-fluid">
+            <!-- Brand -->
+            <a class="h4 mb-0 text-white text-uppercase text--sm-center text-md-left pl-sm-4 pl-md-0" href="{{ url('admin') }}">
+                Admin Panel
+            </a>
+
+            <ul class="navbar-nav align-items-center d-none d-md-flex">
+                <li class="nav-item dropdown">
+                    <span class="mb-0 text-sm font-weight-bold text-white">
+                        <i class="fas fa-user-circle"></i> {{ username|capitalize }}
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid pt-6">
+        <div class="row">
+            <div class="col-xl-12">
+
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-transparent">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h6 class="text-uppercase text-muted ls-1 mb-1">Admin Panel</h6>
+                                <h2 class="mb-0">Flip Items</h2>
+                            </div>
+                            <div class="col">
+                                <form method="post" action="{{ url('admin/items') }}" class="form-inline float-right">
+                                    <div class="form-group my-0">
+                                        <input class="form-control form-control-sm border-0" 
+                                        name="item_name" 
+                                        value="{{ item_name is defined ? item_name : "" }}">
+                                    </div>
+                                    <div class="form-group my-0">
+                                        <button class="btn btn-link btn-sm text-white" type="submit">
+                                            <i class="fal fa-search fa-fw"></i>
+                                        </button>
+                                        <a href="{{ url('admin/items/add') }}" class="btn btn-primary">
+                                            Add Item
+                                        </a>
+                                    </div>
+                                    <input type="hidden" name="_token" value="{{ csrf_token }}">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th></th>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Rarity</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        {% for item in flip_items['items'] %}
+                        <tr>
+                            <td>{{ item['id'] }}</td>
+
+                            <td class="text-right text-muted" 
+                                style="width:50px;padding-right:0;">
+                                 {{ item['item_id'] }}
+                            </td>
+
+                            <td>{{ item['item_name'] }}</td>
+                            <td>x{{ item['quantity']|number_format }}</td>
+                            <td>{{ item['rarity'] }}</td>
+
+                            <td class="text-muted">
+                                <a href="{{ url('admin/items/edit/'~item['id']) }}"
+                                    class="text-primary">
+                                    Edit
+                                </a> |
+                                <a href="{{ url('admin/items/delete/'~item['id']) }}"
+                                    class="text-primary">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+
+                <div class="m-auto text-center">
+                    {% set base_path = "admin/items/"~(item_name is defined ? item_name~"/" : "")~"" %}
+                    
+                    <a href="{{ url(base_path~flip_items['first']) }}" class="btn btn-primary">
+                        <i class="fal fa-angle-double-left fa-fw"></i>
+                    </a>
+                    <a href="{{ url(base_path~flip_items['before']) }}" class="btn btn-primary">
+                        <i class="fal fa-angle-left fa-fw"></i>
+                    </a>
+                    
+                    Page {{ flip_items['current'] }} of {{ flip_items['total_pages'] }}
+
+                    <a href="{{ url(base_path~flip_items['next']) }}" class="btn btn-primary ml-2">
+                        <i class="fal fa-angle-right fa-fw"></i>
+                    </a>
+                    <a href="{{ url(base_path~flip_items['last']) }}" class="btn btn-primary">
+                        <i class="fal fa-angle-double-right fa-fw"></i>
+                    </a>
+
+                </div>
+
+                {{ content|raw }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
